@@ -12,6 +12,16 @@ import streamlit as st
 DATA_DIR = r"data"
 DATA_PATH = os.path.join(DATA_DIR, r"processed_data.pkl")
 
+#TODO add an 'all events' event rate to the data, make sure it is displayed by default
+#TODO Finish the primary submission plots:
+#    - Provide a link to the dashboard and the password in the email
+#    - Basic event rates by city bar chart (possibly stacked with LOS, incursions, all other?)
+#    - 4 x city line plot -> top 5 + an 'all' line + the main two
+#    - Plots that dig into the two identified types:
+#       - LOS, Green City, February 2022
+#       - Facility Issue, Red City, May 2022
+#TODO make sure all the submitted plots are shown, or able to be reconstructed, through the dashboard.
+#TODO check all the key numbers are right through excel
 
 @st.cache_data
 def get_df() -> pd.DataFrame:
@@ -131,7 +141,7 @@ def main():
         tab1, tab2 = st.tabs(["Month - Event Type Line Plots", "Event Type Box Plots"])
         fig_line, fig_box = get_event_rate_plots(df, city_selction)
 
-        display_note = "Note - 'Loss of Seperation' and 'Runway Incursion' events are displayed by default, along with the five types with highest event rate values. Others can be enabled by clicking on the legend."
+        display_note = "'Loss of Seperation' and 'Runway Incursion' events are displayed by default along with the five types with highest event rates. Others can be selected in the legend."
 
         with tab1:
             st.write(display_note)
@@ -174,9 +184,6 @@ def check_password():
     else:
         # Password correct.
         return True
-
-
-
 
 if __name__ == "__main__":
     main()
