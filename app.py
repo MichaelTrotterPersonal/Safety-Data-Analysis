@@ -99,53 +99,83 @@ def get_event_rate_plots(df: pd.DataFrame, city: str = "All Cities") -> None:
 
 def main():
     """Main function for defining the streamlit web app"""
+    if check_password():
+        st.set_page_config(layout="wide", page_title="M.Trotter - Analysis")
 
-    st.set_page_config(layout="wide", page_title="M.Trotter - Analysis")
+        # Fake data warning
+        st.markdown(
+            "<h1 style='text-align: center; color:#8B0000; font-family:Monospace; font-size: 25px;'>// All data shown here is for analysis demonstration purposes only //</h1>",
+            unsafe_allow_html=True,
+        )
 
-    # Fake data warning
-    st.markdown(
-        "<h1 style='text-align: center; color:#8B0000; font-family:Monospace; font-size: 25px;'>// All data shown here is for analysis demonstration purposes only //</h1>",
-        unsafe_allow_html=True,
-    )
+        # Title
+        title_container = st.container()
+        with title_container:
+            
+            name = '<p style="color:white; font-family:Monospace; font-size: 30px; margin-top: auto;">Michael Trotter</p>'
+            title = "Safety Data Analysis Exercise - Senior Safety Data Analyst application, June 2023"
+            title = f'<p style="color:white; font-family:Monospace; font-size: 20px; margin-top: auto;">{title}</p>'
+            st.markdown(name, unsafe_allow_html=True)
+            st.markdown(title, unsafe_allow_html=True)
 
-    # Title
-    title_container = st.container()
-    with title_container:
-        
-        name = '<p style="color:white; font-family:Monospace; font-size: 30px; margin-top: auto;">Michael Trotter</p>'
-        title = "Safety Data Analysis Exercise - Senior Safety Data Analyst application, June 2023"
-        title = f'<p style="color:white; font-family:Monospace; font-size: 20px; margin-top: auto;">{title}</p>'
-        st.markdown(name, unsafe_allow_html=True)
-        st.markdown(title, unsafe_allow_html=True)
+        # City selection dropdown
+        city_selction = st.selectbox(
+            "Which locations would you like to display?",
+            ("All Cities", "Blue City", "Green City", "Red City", "Yellow City"),
+        )
 
-    # City selection dropdown
-    city_selction = st.selectbox(
-        "Which locations would you like to display?",
-        ("All Cities", "Blue City", "Green City", "Red City", "Yellow City"),
-    )
+        # Data read from a pre-processed pickle file
+        df = get_df()
 
-    # Data read from a pre-processed pickle file
-    df = get_df()
+        # Tabs for each plot type
+        tab1, tab2 = st.tabs(["Month - Event Type Line Plots", "Event Type Box Plots"])
+        fig_line, fig_box = get_event_rate_plots(df, city_selction)
 
-    # Tabs for each plot type
-    tab1, tab2 = st.tabs(["Month - Event Type Line Plots", "Event Type Box Plots"])
-    fig_line, fig_box = get_event_rate_plots(df, city_selction)
+        display_note = "Note - 'Loss of Seperation' and 'Runway Incursion' events are displayed by default, along with the five types with highest event rate values. Others can be enabled by clicking on the legend."
 
-    display_note = "Note - 'Loss of Seperation' and 'Runway Incursion' events are displayed by default, along with the five types with highest event rate values. Others can be enabled by clicking on the legend."
+        with tab1:
+            st.write(display_note)
 
-    with tab1:
-        st.write(display_note)
+            # Line plots
+            fig_line.update_layout(height=600, width=1200)
+            st.plotly_chart(fig_line)
 
-        # Line plots
-        fig_line.update_layout(height=600, width=1200)
-        st.plotly_chart(fig_line)
+        with tab2:
+            st.write(display_note)
 
-    with tab2:
-        st.write(display_note)
+            # Box plots
+            fig_box.update_layout(height=600, width=1200)
+            st.plotly_chart(fig_box)
 
-        # Box plots
-        fig_box.update_layout(height=600, width=1200)
-        st.plotly_chart(fig_box)
+def check_password():
+    """Returns `True` if the user had the correct password."""
+
+    def password_entered():
+        """Checks whether a password entered by the user is correct."""
+        if st.session_state["password"] == st.secrets["password"]:
+            st.session_state["password_correct"] = True
+            del st.session_state["password"]  # don't store password
+        else:
+            st.session_state["password_correct"] = False
+
+    if "password_correct" not in st.session_state:
+        # First run, show input for password.
+        st.text_input(
+            "Password", type="password", on_change=password_entered, key="password"
+        )
+        return False
+    elif not st.session_state["password_correct"]:
+        # Password not correct, show input + error.
+        st.text_input(
+            "Password", type="password", on_change=password_entered, key="password"
+        )
+        st.error("😕 Password incorrect")
+        return False
+    else:
+        # Password correct.
+        return True
+
+
 
 
 if __name__ == "__main__":
