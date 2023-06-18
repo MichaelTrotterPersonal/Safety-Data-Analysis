@@ -1,3 +1,4 @@
 streamlit
 pandas<2.0.0 # 2.0 introduced a bug with loading DataFrame objects using pickle
 plotly
+seaborn
