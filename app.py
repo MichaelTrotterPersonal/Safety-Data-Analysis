@@ -197,19 +197,19 @@ def main():
                 ["Month - Event Type Line Plots", "Event Type Box Plots"]
             )
 
-            display_note = "'Loss of Seperation' and 'Runway Incursion' events are displayed by default along with the five types with highest event rates. Others can be selected in the legend."
+            display_note = "Note - 'Loss of Seperation' and 'Runway Incursion' events are displayed by default along with the five types with highest event rates. Others can be selected in the legend."
 
             with tab1:
-                st.write(display_note)
-
+                
                 # Line plots
                 fig_line = get_event_rate_line_plot(df, city=city_selction,colour_map=colour_map)
                 fig_line.update_layout(height=750, width=1200)
                 st.plotly_chart(fig_line)
 
-            with tab2:
                 st.write(display_note)
 
+            with tab2:
+                
                 # Box plots
                 if city_selction == "All Cities":
                     cities_as_data_points = st.checkbox(
@@ -223,6 +223,8 @@ def main():
 
                 fig_box.update_layout(height=750, width=1200)
                 st.plotly_chart(fig_box)
+                
+                st.write(display_note)
 
         if tabs == "Discussion":
             '''Request - "Using the ... Reported Event and Aircraft Movement data, provide visualisations on the rate of events (per aircraft movement) at the four locations. 
