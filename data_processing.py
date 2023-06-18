@@ -88,6 +88,16 @@ def get_blank_df(event_types: list, locations: list, year: int=2022) -> pd.DataF
     return res_df
 
 def get_combined_df(movements_df: pd.DataFrame, events_df: pd.DataFrame, blank_df: pd.DataFrame) -> pd.DataFrame:
+    """Returns the combined movements and events DataFrames with some minor data augmentation.
+
+    Args:
+        movements_df (pd.DataFrame): the DataFrame containing all the movement data.
+        events_df (pd.DataFrame): the DataFrame containing all the event data.
+        blank_df (pd.DataFrame): a DataFrame with all event type, location, month combinations for filling with the event and movement data into a standard form.
+
+    Returns:
+        pd.DataFrame: the DataFrame as used by the web app, containing all the needed movement and event data for the analysis.
+    """
     
     # Get the events for this city
     events_df = events_df.groupby(['Event_Type','month','Location']).count().iloc[:,[0]].rename(columns={'Event_ID':'n_events'}).reset_index()
@@ -126,7 +136,8 @@ def get_combined_df(movements_df: pd.DataFrame, events_df: pd.DataFrame, blank_d
     
     return res_df
 
-if __name__ == "__main__":
+def main():
+    """This function will call the necessary functions to process the provided movement and event .csv files into two pickled pd.DataFrames for use by the web app."""
     
     events_df = get_events_data()
     movements_df = get_movements_data()
@@ -144,3 +155,6 @@ if __name__ == "__main__":
 
     with open(SELECTED_OUT_PATH, "wb") as file:
         pickle.dump(selected_df, file)
+
+if __name__ == "__main__":
+    main()

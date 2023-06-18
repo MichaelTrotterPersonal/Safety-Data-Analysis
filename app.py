@@ -16,9 +16,8 @@ PROCESSED_DATA_PATH = os.path.join(DATA_DIR, r"processed_data.pkl")
 SELECTED_DATA_PATH = os.path.join(DATA_DIR, r"selected_data.pkl")
 FIXED_Y_AXIS_RANGE = [0, 3.7]
 
+# When set to True, .png plots and .csv tables from the discussion section will be written out to files.
 WRITE_PLOTS = False
-
-# TODO check all the key numbers are right through excel
 
 @st.cache_data
 def get_df(filename:str) -> pd.DataFrame:
@@ -31,7 +30,16 @@ def get_df(filename:str) -> pd.DataFrame:
         return pickle.load(file)
 
 
-def get_plot_orders(df):
+def get_plot_orders(df:pd.DataFrame) -> tuple:
+    """Returns two lists defining the order of events to plot and the top ~8 events to make visible.
+
+    Args:
+        df (pd.DataFrame): the processed data DataFrame with merged event and movement data.
+
+    Returns:
+        tuple: (list,list) containing the order of event types to add to the plot, and the ones to have visible.
+    """
+
     # Limit the number of event types displayed by default to a max of 7
     # Filter to the 5 highest event rate event types, plus All Types, LOS and Runway Incursion
     always_show = ["All Types", "Loss of Separation", "Runway Incursion"]
@@ -49,17 +57,18 @@ def get_plot_orders(df):
     return all_types, to_show
 
 
-def get_event_rate_line_plot(df: pd.DataFrame, city: str = "All Cities", colour_map: list = None) -> None:
-    """This function takes in the DataFrame containing the movement and event data, as well as an optional city name.
-    It then generates two plots breaking down the event rates by months of 2022.
-
-    - The first plot is a line graph with months on the x-axis and event rates per 1,000 movements on the y-axis. Each event type is plotted as a seperate line.
-    - The second plot is a series of box plots, one for each event type along the x-axis, with the event rates on the y-axis.
+def get_event_rate_line_plot(df: pd.DataFrame, city: str = "All Cities", colour_map: dict = None) -> go.Figure:
+    """This function takes in the DataFrame containing the movement and event data and generates the event type line plots.  
 
     Args:
-        df (pd.DataFrame): The DataFrame containing the calculated event rates for each event type, city, and month of 2022.
-        city (str, optional): The city name to filter the data by. Defaults to 'All Cities'.
+        df (pd.DataFrame): the processed data DataFrame with merged event and movement data.
+        city (str, optional): the city to optionally filter to. Defaults to "All Cities".
+        colour_map (dict, optional): a set colour map to specify event type colours. Defaults to None.
+
+    Returns:
+        go.Figure: A plotly graph object figure with the line plots.
     """
+
 
     # Filter to the specified location
     df = df[df.Location == city]
@@ -92,17 +101,18 @@ def get_event_rate_line_plot(df: pd.DataFrame, city: str = "All Cities", colour_
 
 
 def get_event_rate_box_plot(
-    df: pd.DataFrame, city: str = "All Cities", cities_as_data_points: bool = True, colour_map: list = None
-) -> None:
-    """This function takes in the DataFrame containing the movement and event data, as well as an optional city name.
-    It then generates two plots breaking down the event rates by months of 2022.
-
-    - The first plot is a line graph with months on the x-axis and event rates per 1,000 movements on the y-axis. Each event type is plotted as a seperate line.
-    - The second plot is a series of box plots, one for each event type along the x-axis, with the event rates on the y-axis.
+    df: pd.DataFrame, city: str = "All Cities", cities_as_data_points: bool = True, colour_map: dict = None
+) -> go.Figure:
+    """This function takes in the DataFrame containing the movement and event data and generates the event type box plots.
 
     Args:
-        df (pd.DataFrame): The DataFrame containing the calculated event rates for each event type, city, and month of 2022.
-        city (str, optional): The city name to filter the data by. Defaults to 'All Cities'.
+        df (pd.DataFrame): the processed data DataFrame with merged event and movement data.
+        city (str, optional): the city to optionally filter to. Defaults to "All Cities".
+        cities_as_data_points (bool, optional): whether to treat cities as individual data points in the box plots, only used when a city is not specified. Defaults to True.
+        colour_map (dict, optional): a set colour map to specify event type colours. Defaults to None.
+
+    Returns:
+        go.Figure: A plotly graph object figure with the box plots.
     """
 
     # Filter to the specified location
@@ -138,7 +148,13 @@ def get_event_rate_box_plot(
 
 
 def main():
-    """Main function for defining the streamlit web app"""
+    """Main function for defining the streamlit web app.
+    This includes 2 areas:
+        - Exploratory Analysis: 
+            Generate line and box plots by event type and location
+        - Discussion:
+            The reponse content as included in the returned PDF outlining my insights."""
+    
     if check_password():
 
         st.set_page_config(layout="wide", page_title="M.Trotter - Analysis")
@@ -158,17 +174,8 @@ def main():
             st.markdown(name, unsafe_allow_html=True)
             st.markdown(title, unsafe_allow_html=True)
 
+        # Sidebar navigation
         tabs = st.sidebar.radio("Navigation", ("Exploratory Analysis", "Discussion"))
-
-        st.markdown(
-            f"""
-                <style>
-                    section[data-testid="stSidebar"] .css-ng1t4o {{width: 2rem;}}
-                    section[data-testid="stSidebar"] .css-1d391kg {{width: 2rem;}}
-                </style>
-            """,
-            unsafe_allow_html=True,
-        )
 
         # Data read from a pre-processed pickle file
         df = get_df(PROCESSED_DATA_PATH)
@@ -192,6 +199,7 @@ def main():
             )
 
             st.markdown("What type of plot would you like to display?")
+            
             # Tabs for each plot type
             tab1, tab2 = st.tabs(
                 ["Month - Event Type Line Plots", "Event Type Box Plots"]
@@ -226,7 +234,9 @@ def main():
                 
                 st.write(display_note)
 
-        if tabs == "Discussion":
+        # Content for the discussion section of the web app, as covered in the response pdf.
+        if tabs == "Discussion": 
+
             '''Request - "Using the ... Reported Event and Aircraft Movement data, provide visualisations on the rate of events (per aircraft movement) at the four locations. 
             Provide insight on any two event types and whether they involved civilian aircraft registered in Australia or overseas. 
             Only present data for the 2022 calendar year (Jan-Dec)."'''
@@ -241,7 +251,6 @@ def main():
             All events had an Aircraft_Register value of 'Not Applicable' with the exception of one which was for an Australian registered aircraft. 
             This is the single highest monthly event rate of any type across all four locations in 2022.'''
 
-            
             st.subheader("Data Overview")
 
             # Plot the basic rate of events by city bar chart
@@ -352,6 +361,7 @@ def main():
             
             '''Shown below are the 2022 Green City LOS event details selected from the data. Significantly, all occurred on the same date – the 25th of February.'''
             
+            # Show the LOS table with events
             selected_df = get_df(SELECTED_DATA_PATH)[['Event_Date','Event_Type','Aircraft_Register','Location']]
             los_events = selected_df[selected_df.Event_Type=='Loss of Separation']
             green_los = los_events[los_events.Location=="Green City"]
@@ -364,6 +374,7 @@ def main():
             '''The obvious conclusion is that there was a break-down in safety processes on that day that would be worth investigating further. '''
             '''Finally, worth noting is that Yellow City had no LOS events, Red City had only one, while Blue City accounted for 50% of all LOS events in 2022. This makes Blue City’s rate of LOS events ~2.75 times higher than the 2019-2020 published figures.'''
             
+            # Show the LOS counts table
             los_counts = los_events.groupby(['Location']).count()[['Event_Date']].rename(columns={'Event_Date':'LOS Event Count'}).reset_index()
             st.dataframe(los_counts)
             
@@ -414,7 +425,7 @@ def main():
             '''Of the 42 'Facility Issue' events for Red City in May 2022, only one had an Aircraft_Register 
             value of anything other than 'Not Applicable', this was for an Australian registered aircraft.'''
 
-
+            # Show the facility issue table
             fac_events = selected_df[selected_df.Event_Type=='Facility Issue']
             fac_counts = fac_events.groupby('Aircraft_Register').count()[['Location']].rename(columns={'Location':'Facility Issue Event Count'})
             st.dataframe(fac_counts)
