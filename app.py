@@ -139,8 +139,8 @@ def get_event_rate_box_plot(
 
 def main():
     """Main function for defining the streamlit web app"""
-    # if check_password(): #TODO
-    if True:
+    if check_password():
+
         st.set_page_config(layout="wide", page_title="M.Trotter - Analysis")
 
         # Fake data warning
