@@ -438,6 +438,8 @@ def check_password():
 
     if "password_correct" not in st.session_state:
         # First run, show input for password.
+        '''Safety Data Analysis Exercise - June 2023'''
+        '''Please provide the password'''
         st.text_input(
             "Password", type="password", on_change=password_entered, key="password"
         )
